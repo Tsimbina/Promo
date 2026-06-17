@@ -16,29 +16,36 @@
     <div class="admin-shell">
         <div class="sidebar-backdrop" data-sidebar-close></div>
 
-        <aside class="admin-sidebar" id="adminSidebar" aria-label="Main navigation">
-            <div class="sidebar-header">
-                <a class="brand-mark" href="index.html" aria-label="adminHMD dashboard">
-                    <span class="brand-icon"><i class="bi bi-grid-1x2-fill" aria-hidden="true"></i></span>
-                    <span class="brand-copy">
-                        <span class="brand-title">PROMO</span>
-                        <span class="brand-subtitle">Admin Template</span>
-                    </span>
-                </a>
-            </div>
+<aside class="admin-sidebar">
+  <div class="sidebar-header">
+    <a href="<?= site_url('/') ?>" class="brand-mark">
+      <span class="brand-icon"><i class="bi bi-grid-1x2-fill"></i></span>
+      <span class="brand-title">PROMO</span>
+    </a>
+  </div>
 
-            <nav class="sidebar-nav">
-                <a class="nav-link" href="tables.html">
-                    <span class="nav-icon"><i class="bi bi-box-seam" aria-hidden="true"></i></span>
-                    <span class="nav-text">Produits</span>
-                </a>
-            </nav>
+  <nav class="sidebar-nav">
 
-            <div class="sidebar-footer">
-                <span class="status-dot"></span>
-                <span class="sidebar-footer-text">System running smoothly</span>
-            </div>
-        </aside>
+    <!-- Caisse -->
+    <a class="nav-link" href="<?= site_url('/') ?>">
+      <span class="nav-icon"><i class="bi bi-cash-stack"></i></span>
+      <span class="nav-text">Caisse</span>
+    </a>
+
+    <!-- Achats -->
+    <a class="nav-link" href="<?= site_url('/achat') ?>">
+      <span class="nav-icon"><i class="bi bi-cart-check"></i></span>
+      <span class="nav-text">Achats</span>
+    </a>
+
+    <!-- STOCK (nouveau) -->
+    <a class="nav-link" href="<?= site_url('/stock') ?>">
+      <span class="nav-icon"><i class="bi bi-box-seam"></i></span>
+      <span class="nav-text">Stock Produits</span>
+    </a>
+
+  </nav>
+</aside>
 
         <div class="admin-main">
             <nav class="navbar admin-navbar navbar-expand bg-white">
@@ -289,3 +296,6 @@
 </body>
 
 </html>
+
+<script src="<?= base_url('assets/js/bootstrap.bundle.min.js') ?>"></script>
+<script src="<?= base_url('assets/js/main.js') ?>"></script>
