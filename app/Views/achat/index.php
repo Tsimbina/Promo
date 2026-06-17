@@ -7,9 +7,9 @@
     <meta name="description" content="adminHMD professional admin dashboard template">
     <title>Forms | adminHMD</title>
 
-    <link rel="stylesheet" href="../assets/css/bootstrap.min.css">
-    <link rel="stylesheet" href="../assets/vendors/bootstrap-icons/bootstrap-icons.css">
-    <link rel="stylesheet" href="../assets/css/style.css">
+    <link rel="stylesheet" href="../../assets/css/bootstrap.min.css">
+    <link rel="stylesheet" href="../../assets/vendors/bootstrap-icons/bootstrap-icons.css">
+    <link rel="stylesheet" href="../../assets/css/style.css">
 </head>
 
 <body>
@@ -160,10 +160,9 @@
         (function () {
             const CART_KEY = 'achat_cart_v1';
             const PRICES = {
-                "Fako1": 1240.00,
-                "Fako2": 860.00,
-                "Fako3": 430.00,
-                "Fako4": 220.00
+                <?php foreach ($produits as $produit): ?>
+                    <?= json_encode($produit['id']) ?>: <?= json_encode((float)$produit['prix_unitaire']) ?>,
+                <?php endforeach; ?>
             };
 
             function getCart() {
@@ -216,7 +215,8 @@
                         if (!product) { alert('Veuillez choisir un produit.'); return; }
                         if (qty < 1) { alert('Quantité invalide.'); return; }
                         const cart = getCart();
-                        const price = PRICES[product] || 0;
+                        //
+                        const price = document.getElementById('productSelect').value || 0;
                         cart.push({ product, qty, price });
                         saveCart(cart);
                         renderCart();
@@ -234,7 +234,7 @@
                         const p = e.currentTarget.value;
                         const priceLabel = document.getElementById('productPriceLabel');
                         if (p && PRICES[p] != null) {
-                            priceLabel.textContent = PRICES[p].toFixed(2) + ' €';
+                            priceLabel.textContent = PRICES[p].toFixed(2) + ' Ar';
                         } else if (priceLabel) {
                             priceLabel.textContent = '-';
                         }
@@ -254,6 +254,8 @@
             });
         })();
     </script>
+      <script src="../../assets/js/bootstrap.bundle.min.js"></script>
+    <script src="../../assets/js/main.js"></script>
 </body>
 
 </html>
