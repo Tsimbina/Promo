@@ -156,104 +156,131 @@
 
     <script src="../assets/js/bootstrap.bundle.min.js"></script>
     <script src="../assets/js/main.js"></script>
-    <script>
-        (function () {
-            const CART_KEY = 'achat_cart_v1';
-            const PRICES = {
-                <?php foreach ($produits as $produit): ?>
-                    <?= json_encode($produit['id']) ?>: <?= json_encode((float)$produit['prix_unitaire']) ?>,
-                <?php endforeach; ?>
-            };
+   <script>
+    (function () {
+        const CART_KEY = 'achat_cart_v1';
+        const PRICES = {
+            <?php foreach ($produits as $produit): ?>
+                <?= json_encode($produit['id']) ?>: <?= json_encode((float)$produit['prix_unitaire']) ?>,
+            <?php endforeach; ?>
+        };
 
-            function getCart() {
-                try { return JSON.parse(localStorage.getItem(CART_KEY) || '[]'); }
-                catch (e) { return []; }
+        function getCart() {
+            try { return JSON.parse(localStorage.getItem(CART_KEY) || '[]'); }
+            catch (e) { return []; }
+        }
+
+        function saveCart(cart) { localStorage.setItem(CART_KEY, JSON.stringify(cart)); }
+
+        function renderCart() {
+            const tbody = document.getElementById('cartTableBody');
+            if (!tbody) return;
+            tbody.innerHTML = '';
+            const cart = getCart();
+            cart.forEach((item, i) => {
+                const unitPrice = Number(item.unitPrice) || 0;
+                const qty = Number(item.qty) || 0;
+                const lineTotal = unitPrice * qty;
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${item.designation}</td>
+                    <td>${qty}</td>
+                    <td>${unitPrice.toFixed(2)} Ar</td>
+                    <td>${lineTotal.toFixed(2)} Ar</td>
+                    <td class="text-end">
+                        <button class="btn btn-sm btn-outline-danger remove-btn" data-index="${i}">Supprimer</button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            // Gestion des boutons "Supprimer"
+            Array.from(document.getElementsByClassName('remove-btn')).forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const idx = Number(e.currentTarget.getAttribute('data-index'));
+                    const c = getCart();
+                    c.splice(idx, 1);
+                    saveCart(c);
+                    renderCart();
+                });
+            });
+
+            // Mise à jour du total
+            const totalPrice = cart.reduce((s, it) => {
+                const unitPrice = Number(it.unitPrice) || 0;
+                const qty = Number(it.qty) || 0;
+                return s + unitPrice * qty;
+            }, 0);
+            const totalEl = document.getElementById('cartTotal');
+            if (totalEl) totalEl.textContent = totalPrice.toFixed(2) + ' Ar';
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const addBtn = document.getElementById('addProductBtn');
+            const clearBtn = document.getElementById('clearCartBtn');
+            const productSelect = document.getElementById('productSelect');
+            const qtyInput = document.getElementById('productQty');
+            const priceLabel = document.getElementById('productPriceLabel');
+
+            // Mise à jour du prix affiché lors du changement de produit
+            if (productSelect) {
+                productSelect.addEventListener('change', () => {
+                    const id = productSelect.value;
+                    if (id && PRICES[id] != null) {
+                        priceLabel.textContent = PRICES[id].toFixed(2) + ' Ar';
+                    } else {
+                        priceLabel.textContent = '-';
+                    }
+                });
             }
 
-            function saveCart(cart) { localStorage.setItem(CART_KEY, JSON.stringify(cart)); }
+            // Ajout d'un produit
+            if (addBtn) {
+                addBtn.addEventListener('click', () => {
+                    const id = productSelect.value;
+                    const qty = parseInt(qtyInput.value, 10) || 0;
 
-              function renderCart() {
-                        const tbody = document.getElementById('cartTableBody');
-                        if (!tbody) return;
-                        tbody.innerHTML = '';
-                        const cart = getCart();
-                        cart.forEach((item, i) => {
-                            const price = Number(item.price) || Number(PRICES[item.product]) || 0;
-                            const qty = Number(item.qty) || 0;
-                            const lineTotal = price * qty;
-                            const tr = document.createElement('tr');
-                            tr.innerHTML = `<td>${item.product}</td><td>${qty}</td><td>${price.toFixed(2)} €</td><td>${lineTotal.toFixed(2)} €</td><td class="text-end"><button class="btn btn-sm btn-outline-danger remove-btn" data-index="${i}">Supprimer</button></td>`;
-                            tbody.appendChild(tr);
-                        });
-                        Array.from(document.getElementsByClassName('remove-btn')).forEach(btn => {
-                            btn.addEventListener('click', (e) => {
-                                const idx = Number(e.currentTarget.getAttribute('data-index'));
-                                const c = getCart();
-                                c.splice(idx, 1);
-                                saveCart(c);
-                                renderCart();
-                            });
-                        });
-                        // update total price
-                        const totalPrice = cart.reduce((s, it) => {
-                            const price = Number(it.price) || Number(PRICES[it.product]) || 0;
-                            const qty = Number(it.qty) || 0;
-                            return s + price * qty;
-                        }, 0);
-                        const totalEl = document.getElementById('cartTotal');
-                        if (totalEl) totalEl.textContent = totalPrice.toFixed(2) + ' €';
-                    }
+                    if (!id) { alert('Veuillez choisir un produit.'); return; }
+                    if (qty < 1) { alert('Quantité invalide.'); return; }
 
-            document.addEventListener('DOMContentLoaded', () => {
-                const addBtn = document.getElementById('addProductBtn');
-                const clearBtn = document.getElementById('clearCartBtn');
+                    // Récupération de la désignation depuis l'option sélectionnée
+                    const selectedOption = productSelect.options[productSelect.selectedIndex];
+                    const designation = selectedOption ? selectedOption.text : id;
 
-                if (addBtn) {
-                    addBtn.addEventListener('click', () => {
-                        const product = document.getElementById('productSelect').value;
-                        const qty = parseInt(document.getElementById('productQty').value, 10) || 0;
-                        if (!product) { alert('Veuillez choisir un produit.'); return; }
-                        if (qty < 1) { alert('Quantité invalide.'); return; }
-                        const cart = getCart();
-                        //
-                        const price = document.getElementById('productSelect').value || 0;
-                        cart.push({ product, qty, price });
-                        saveCart(cart);
+                    const unitPrice = PRICES[id];
+                    if (unitPrice == null) { alert('Prix non trouvé pour ce produit.'); return; }
+
+                    const cart = getCart();
+                    cart.push({
+                        id: id,
+                        designation: designation,
+                        qty: qty,
+                        unitPrice: unitPrice
+                    });
+                    saveCart(cart);
+                    renderCart();
+
+                    // Réinitialisation du formulaire
+                    productSelect.value = '';
+                    qtyInput.value = 1;
+                    priceLabel.textContent = '-';
+                });
+            }
+
+            // Vider le panier
+            if (clearBtn) {
+                clearBtn.addEventListener('click', () => {
+                    if (confirm('Vider le panier ?')) {
+                        localStorage.removeItem(CART_KEY);
                         renderCart();
-                        document.getElementById('productSelect').value = '';
-                        document.getElementById('productQty').value = 1;
-                        const priceLabel = document.getElementById('productPriceLabel');
-                        if (priceLabel) priceLabel.textContent = '-';
-                    });
-                }
+                    }
+                });
+            }
 
-                // update unit price label when product selection changes
-                const productSelect = document.getElementById('productSelect');
-                if (productSelect) {
-                    productSelect.addEventListener('change', (e) => {
-                        const p = e.currentTarget.value;
-                        const priceLabel = document.getElementById('productPriceLabel');
-                        if (p && PRICES[p] != null) {
-                            priceLabel.textContent = PRICES[p].toFixed(2) + ' Ar';
-                        } else if (priceLabel) {
-                            priceLabel.textContent = '-';
-                        }
-                    });
-                }
-
-                if (clearBtn) {
-                    clearBtn.addEventListener('click', () => {
-                        if (confirm('Vider le panier ?')) {
-                            localStorage.removeItem(CART_KEY);
-                            renderCart();
-                        }
-                    });
-                }
-
-                renderCart();
-            });
-        })();
-    </script>
+            renderCart();
+        });
+    })();
+</script>
       <script src="../../assets/js/bootstrap.bundle.min.js"></script>
     <script src="../../assets/js/main.js"></script>
 </body>
