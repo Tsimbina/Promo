@@ -17,25 +17,21 @@ class AchatController extends BaseController
 
     public function create()
     {
-        if ($this->request->is('post')) {
-            $achatMereModel = new AchatMere();
-            $achatFilleModel = new AchatFille();
-
-            $achatMereId = $achatMereModel->insert($this->request->getPost());
-
-            $produits = $this->request->getPost('produits');
-            foreach ($produits as $produit) {
-                $achatFilleModel->insert([
-                    'achat_mere_id' => $achatMereId,
-                    'produit_id' => $produit['produit_id'],
-                    'quantite' => $produit['quantite'],
-                    'prix_unitaire' => $produit['prix_unitaire']
-                ]);
-            }
-
-            return redirect()->to('/achats')->with('message', 'Achat cree avec succes.');
+        $cartData = $this->request->getPost('cart_data');
+        if (empty($cartData)) {
+            return redirect()->to('/achat/saisie')->with('error', 'Le panier est vide.');
         }
 
-        return view('achats/create');
+        $items = json_decode($cartData, true);
+        if (!is_array($items)) {
+            return redirect()->to('/achat/saisie')->with('error', 'Données du panier invalides.');
+        }
+
+        // Appel du modèle
+        $achatModel = new AchatMere();
+        $result = $achatModel->enregistrerAchat($items,session()->get('caisse_id'));
+        return redirect()->to('/achat/saisie');
     }
+
+
 }

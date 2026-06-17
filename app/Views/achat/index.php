@@ -34,8 +34,6 @@
                 </a>
             </nav>
 
-
-
             <div class="sidebar-footer">
                 <span class="status-dot"></span>
                 <span class="sidebar-footer-text">System running smoothly</span>
@@ -51,8 +49,6 @@
                         <span></span>
                         <span></span>
                     </button>
-
-
 
                     <div class="navbar-actions ms-auto">
                         <button class="icon-button theme-toggle" type="button" data-theme-toggle
@@ -70,11 +66,10 @@
                             <span class="page-icon"><i class="bi bi-ui-checks-grid" aria-hidden="true"></i></span>
                             <div>
                                 <p class="eyebrow mb-1">Inputs</p>
-                                <h1 class="h3 mb-1"> Choisissez votre Produit  : </h1>
+                                <h1 class="h3 mb-1">Choisissez votre Produit :</h1>
                                 <p class="text-muted mb-0">Formulaire pour choisir le Produit pour l'achat</p>
                             </div>
                         </div>
-
                     </div>
 
                     <section class="row g-3">
@@ -96,7 +91,7 @@
                                                 <option value="<?= esc($produit['id']) ?>"><?= esc($produit['designation']) ?></option>
                                             <?php endforeach; ?>
                                         </select>
-                                        <div class="form-text mt-1">Prix unitaire: <strong id="productPriceLabel">-</strong></div>
+                                        <div class="form-text mt-1">Prix unitaire : <strong id="productPriceLabel">-</strong></div>
                                     </div>
                                     <div class="col-md-4">
                                         <label class="form-label" for="productQty">Quantité</label>
@@ -133,8 +128,18 @@
                                             <!-- lignes ajoutées dynamiquement -->
                                         </tbody>
                                     </table>
-                                    <div class="mt-2 text-end"><strong>Total (€): <span id="cartTotal">0.00</span></strong></div>
+                                    <div class="mt-2 text-end"><strong>Total (Ar) : <span id="cartTotal">0.00</span></strong></div>
                                 </div>
+
+                                <!-- Formulaire de clôture -->
+                                <form id="cartForm" action="/achat/save" method="POST" class="mt-3">
+                                    <input type="hidden" name="cart_data" id="cartData" value="">
+                                    <div class="d-flex justify-content-end">
+                                        <button type="submit" class="btn btn-success" id="closeOrderBtn">
+                                            <i class="bi bi-check-circle" aria-hidden="true"></i> Clôturer achat
+                                        </button>
+                                    </div>
+                                </form>
                             </section>
                         </div>
                     </section>
@@ -156,133 +161,131 @@
 
     <script src="../assets/js/bootstrap.bundle.min.js"></script>
     <script src="../assets/js/main.js"></script>
-   <script>
-    (function () {
-        const CART_KEY = 'achat_cart_v1';
-        const PRICES = {
-            <?php foreach ($produits as $produit): ?>
-                <?= json_encode($produit['id']) ?>: <?= json_encode((float)$produit['prix_unitaire']) ?>,
-            <?php endforeach; ?>
-        };
+    <script>
+        (function () {
+            // ---------- Données et prix depuis PHP ----------
+            const PRICES = {
+                <?php foreach ($produits as $produit): ?>
+                    <?= json_encode($produit['id']) ?>: {
+                        designation: <?= json_encode($produit['designation']) ?>,
+                        price: <?= json_encode((float)$produit['prix_unitaire']) ?>
+                    },
+                <?php endforeach; ?>
+            };
 
-        function getCart() {
-            try { return JSON.parse(localStorage.getItem(CART_KEY) || '[]'); }
-            catch (e) { return []; }
-        }
+            // ---------- Panier en mémoire ----------
+            let cartItems = []; // chaque élément : { id, qty }
 
-        function saveCart(cart) { localStorage.setItem(CART_KEY, JSON.stringify(cart)); }
+            // ---------- Rendu du panier ----------
+            function renderCart() {
+                const tbody = document.getElementById('cartTableBody');
+                if (!tbody) return;
+                tbody.innerHTML = '';
 
-        function renderCart() {
-            const tbody = document.getElementById('cartTableBody');
-            if (!tbody) return;
-            tbody.innerHTML = '';
-            const cart = getCart();
-            cart.forEach((item, i) => {
-                const unitPrice = Number(item.unitPrice) || 0;
-                const qty = Number(item.qty) || 0;
-                const lineTotal = unitPrice * qty;
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td>${item.designation}</td>
-                    <td>${qty}</td>
-                    <td>${unitPrice.toFixed(2)} Ar</td>
-                    <td>${lineTotal.toFixed(2)} Ar</td>
-                    <td class="text-end">
-                        <button class="btn btn-sm btn-outline-danger remove-btn" data-index="${i}">Supprimer</button>
-                    </td>
-                `;
-                tbody.appendChild(tr);
-            });
+                cartItems.forEach((item, index) => {
+                    const product = PRICES[item.id];
+                    if (!product) return; // sécurité
+                    const unitPrice = product.price;
+                    const qty = Number(item.qty) || 0;
+                    const lineTotal = unitPrice * qty;
 
-            // Gestion des boutons "Supprimer"
-            Array.from(document.getElementsByClassName('remove-btn')).forEach(btn => {
-                btn.addEventListener('click', (e) => {
-                    const idx = Number(e.currentTarget.getAttribute('data-index'));
-                    const c = getCart();
-                    c.splice(idx, 1);
-                    saveCart(c);
-                    renderCart();
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${product.designation}</td>
+                        <td>${qty}</td>
+                        <td>${unitPrice.toFixed(2)} Ar</td>
+                        <td>${lineTotal.toFixed(2)} Ar</td>
+                        <td class="text-end">
+                            <button class="btn btn-sm btn-outline-danger remove-btn" data-index="${index}">Supprimer</button>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
                 });
-            });
 
-            // Mise à jour du total
-            const totalPrice = cart.reduce((s, it) => {
-                const unitPrice = Number(it.unitPrice) || 0;
-                const qty = Number(it.qty) || 0;
-                return s + unitPrice * qty;
-            }, 0);
-            const totalEl = document.getElementById('cartTotal');
-            if (totalEl) totalEl.textContent = totalPrice.toFixed(2) + ' Ar';
-        }
+                // Événements "Supprimer"
+                document.querySelectorAll('.remove-btn').forEach(btn => {
+                    btn.addEventListener('click', function (e) {
+                        const idx = Number(this.getAttribute('data-index'));
+                        cartItems.splice(idx, 1);
+                        renderCart();
+                    });
+                });
 
-        document.addEventListener('DOMContentLoaded', () => {
-            const addBtn = document.getElementById('addProductBtn');
-            const clearBtn = document.getElementById('clearCartBtn');
-            const productSelect = document.getElementById('productSelect');
-            const qtyInput = document.getElementById('productQty');
-            const priceLabel = document.getElementById('productPriceLabel');
+                // Mise à jour du total
+                const total = cartItems.reduce((sum, it) => {
+                    const product = PRICES[it.id];
+                    if (!product) return sum;
+                    return sum + product.price * it.qty;
+                }, 0);
+                const totalEl = document.getElementById('cartTotal');
+                if (totalEl) totalEl.textContent = total.toFixed(2) + ' Ar';
 
-            // Mise à jour du prix affiché lors du changement de produit
-            if (productSelect) {
-                productSelect.addEventListener('change', () => {
-                    const id = productSelect.value;
-                    if (id && PRICES[id] != null) {
-                        priceLabel.textContent = PRICES[id].toFixed(2) + ' Ar';
+                // Mise à jour du champ caché (envoi uniquement des IDs et quantités)
+                const cartDataInput = document.getElementById('cartData');
+                if (cartDataInput) {
+                    const payload = cartItems.map(item => ({ id: item.id, qty: item.qty }));
+                    cartDataInput.value = JSON.stringify(payload);
+                }
+            }
+
+            // ---------- Ajout d'un produit ----------
+            function addProduct() {
+                const select = document.getElementById('productSelect');
+                const qtyInput = document.getElementById('productQty');
+                const priceLabel = document.getElementById('productPriceLabel');
+
+                const id = select.value;
+                const qty = parseInt(qtyInput.value, 10) || 0;
+
+                if (!id) { alert('Veuillez choisir un produit.'); return; }
+                if (qty < 1) { alert('Quantité invalide.'); return; }
+
+                // Vérifier que le produit existe dans PRICES
+                if (!PRICES[id]) { alert('Produit inconnu.'); return; }
+
+                // Ajouter au panier
+                cartItems.push({ id: id, qty: qty });
+
+                renderCart();
+
+                // Réinitialiser le formulaire
+                select.value = '';
+                qtyInput.value = 1;
+                if (priceLabel) priceLabel.textContent = '-';
+            }
+
+            // ---------- Vider le panier ----------
+            function clearCart() {
+                if (confirm('Vider le panier ?')) {
+                    cartItems = [];
+                    renderCart();
+                }
+            }
+
+            // ---------- Initialisation ----------
+            document.addEventListener('DOMContentLoaded', function () {
+                const addBtn = document.getElementById('addProductBtn');
+                const clearBtn = document.getElementById('clearCartBtn');
+                const productSelect = document.getElementById('productSelect');
+                const priceLabel = document.getElementById('productPriceLabel');
+
+                // Mise à jour du prix affiché
+                productSelect.addEventListener('change', function () {
+                    const id = this.value;
+                    if (id && PRICES[id]) {
+                        priceLabel.textContent = PRICES[id].price.toFixed(2) + ' Ar';
                     } else {
                         priceLabel.textContent = '-';
                     }
                 });
-            }
 
-            // Ajout d'un produit
-            if (addBtn) {
-                addBtn.addEventListener('click', () => {
-                    const id = productSelect.value;
-                    const qty = parseInt(qtyInput.value, 10) || 0;
+                addBtn.addEventListener('click', addProduct);
+                clearBtn.addEventListener('click', clearCart);
 
-                    if (!id) { alert('Veuillez choisir un produit.'); return; }
-                    if (qty < 1) { alert('Quantité invalide.'); return; }
-
-                    // Récupération de la désignation depuis l'option sélectionnée
-                    const selectedOption = productSelect.options[productSelect.selectedIndex];
-                    const designation = selectedOption ? selectedOption.text : id;
-
-                    const unitPrice = PRICES[id];
-                    if (unitPrice == null) { alert('Prix non trouvé pour ce produit.'); return; }
-
-                    const cart = getCart();
-                    cart.push({
-                        id: id,
-                        designation: designation,
-                        qty: qty,
-                        unitPrice: unitPrice
-                    });
-                    saveCart(cart);
-                    renderCart();
-
-                    // Réinitialisation du formulaire
-                    productSelect.value = '';
-                    qtyInput.value = 1;
-                    priceLabel.textContent = '-';
-                });
-            }
-
-            // Vider le panier
-            if (clearBtn) {
-                clearBtn.addEventListener('click', () => {
-                    if (confirm('Vider le panier ?')) {
-                        localStorage.removeItem(CART_KEY);
-                        renderCart();
-                    }
-                });
-            }
-
-            renderCart();
-        });
-    })();
-</script>
-      <script src="../../assets/js/bootstrap.bundle.min.js"></script>
-    <script src="../../assets/js/main.js"></script>
+                renderCart();
+            });
+        })();
+    </script>
 </body>
 
 </html>
