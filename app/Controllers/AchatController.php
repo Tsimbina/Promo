@@ -33,5 +33,25 @@ class AchatController extends BaseController
         return redirect()->to('/achat/saisie');
     }
 
+    public function show()
+    {
+        $model = new AchatMere();
 
+        $data['achats'] = $model->findAll();
+
+        return view('achat/table', $data);
+    }
+    public function detail($id)
+    {
+        $mereModel = new AchatMere();
+        $filleModel = new AchatFille();
+
+        $data['achat'] = $mereModel->find($id);
+        $data['lignes'] = $filleModel->where('achat_mere_id', $id)->findAll();
+
+        return view('achat/detail', $data);
+    }
 }
+
+
+
