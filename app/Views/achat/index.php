@@ -92,10 +92,9 @@
                                         <label class="form-label" for="productSelect">Produit</label>
                                         <select class="form-select" id="productSelect" required>
                                             <option value="">-- Choisir un produit --</option>
-                                            <option value="Fako1">Fako1</option>
-                                            <option value="Fako2">Fako2</option>
-                                            <option value="Fako3">Fako3</option>
-                                            <option value="Fako4">Fako4</option>
+                                            <?php foreach ($produits as $produit): ?>
+                                                <option value="<?= esc($produit['id']) ?>"><?= esc($produit['designation']) ?></option>
+                                            <?php endforeach; ?>
                                         </select>
                                         <div class="form-text mt-1">Prix unitaire: <strong id="productPriceLabel">-</strong></div>
                                     </div>

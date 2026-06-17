@@ -4,15 +4,15 @@ namespace App\Controllers;
 
 use App\Models\AchatMere;
 use App\Models\AchatFille;
-
+use App\Models\Produit;
 class AchatController extends BaseController
 {
     public function index()
     {
-        $achatMereModel = new AchatMere();
-        $achats = $achatMereModel->findAll();
+        $produitModel = new Produit();
+        $produits = $produitModel->findAll();
 
-        return view('achats/saisie');
+        return view('achats/index',['produits'=> $produits ]);
     }
 
     public function create()

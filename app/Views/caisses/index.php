@@ -79,7 +79,7 @@
 
                     <section class="row g-3">
                         <div class="col-12 col-xl-7">
-                            <form class="panel needs-validation" novalidate  method="get" action="<?= site_url('achat/index') ?>">
+                            <form class="panel needs-validation" novalidate  method="get" action="<?= site_url('/check-caisse') ?>">
                                 <div class="panel-header">
                                     <div>
                                         <h2 class="h5 mb-1 section-title"><i class="bi bi-ui-checks-grid"
@@ -88,9 +88,9 @@
                                     </div>
                                 </div>
                                 <div class="row g-3">
-                                   
+                                
                                     <div class="col-md-6"><label class="form-label" for="formPlan">Plan</label><select
-                                            class="form-select" id="formPlan" required>
+                                            class="form-select" id="num" required>
                                             <option value="">Choisir numéro de caisse</option>
                                             <?php foreach ($caisses as $caisse): ?>
                                                 <option value="<?= $caisse['id'] ?>"><?= $caisse['numero_caisse'] ?></option>
