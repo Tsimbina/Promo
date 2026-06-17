@@ -22,15 +22,15 @@ class CaisseController extends BaseController
 
         if ($caisse) {
             session()->set('caisse_id', $caisse['id']);
-            return view('achats/saisie', ['caisse' => $caisse]);
+            return redirect()->to('/achat/saisie');
         }
 
         return redirect()->to('/caisses')->with('error', 'Caisse non trouvee.');
     }
     public function checkCaisse()
     {
-        $id = $this->request->getGet('num'); // Get the 'num' parameter from the GET request
-        $this->checkCaisseId($id);
+        $id = $this->request->getGet('num'); 
+        return $this->checkCaisseId($id);
     }
 
     public function create()

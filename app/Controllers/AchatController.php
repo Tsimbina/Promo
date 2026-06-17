@@ -12,7 +12,7 @@ class AchatController extends BaseController
         $produitModel = new Produit();
         $produits = $produitModel->findAll();
 
-        return view('achats/index',['produits'=> $produits ]);
+        return view('achat/index',['produits'=> $produits ]);
     }
 
     public function create()

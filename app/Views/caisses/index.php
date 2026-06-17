@@ -90,7 +90,7 @@
                                 <div class="row g-3">
                                 
                                     <div class="col-md-6"><label class="form-label" for="formPlan">Plan</label><select
-                                            class="form-select" id="num" required>
+                                            class="form-select" id="num" name="num" required>
                                             <option value="">Choisir numéro de caisse</option>
                                             <?php foreach ($caisses as $caisse): ?>
                                                 <option value="<?= $caisse['id'] ?>"><?= $caisse['numero_caisse'] ?></option>
