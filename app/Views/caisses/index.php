@@ -96,13 +96,13 @@
                                             <option>C002</option>
                                             <option>C003</option>
                                         </select>
-                                        <div class="invalid-feedback">Choose a plan.</div>
+                                        <div class="invalid-feedback">Choisisser le numéro de caisse</div>
                                     </div>
                                   
                                   
                                 </div>
                                 <div class="d-flex justify-content-end mt-4"><button class="btn btn-primary"
-                                        type="submit"><i class="bi bi-send" aria-hidden="true"></i> Submit Form</button>
+                                        type="submit"><i class="bi bi-send" aria-hidden="true"></i>Valider</button>
                                 </div>
                             </form>
                         </div>
