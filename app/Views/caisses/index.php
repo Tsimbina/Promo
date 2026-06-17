@@ -79,7 +79,7 @@
 
                     <section class="row g-3">
                         <div class="col-12 col-xl-7">
-                            <form class="panel needs-validation" novalidate  method="get">
+                            <form class="panel needs-validation" novalidate  method="get" action="<?= site_url('achat/index') ?>">
                                 <div class="panel-header">
                                     <div>
                                         <h2 class="h5 mb-1 section-title"><i class="bi bi-ui-checks-grid"
