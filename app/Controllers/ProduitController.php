@@ -3,7 +3,7 @@
 namespace App\Controllers;
 
 use App\Models\Produit;
-
+use App\Models\MouvementStock;
 class ProduitController extends BaseController
 {
     public function index()
@@ -37,4 +37,38 @@ class ProduitController extends BaseController
 
         return view('produits/create');
     }
+    public function stock()
+{
+    $produitModel = new Produit();
+    $mouvementModel = new MouvementStock();
+
+    $produits = $produitModel->findAll();
+
+    $data = [];
+
+    foreach ($produits as $p) {
+
+        $entree = $mouvementModel
+            ->selectSum('quantite')
+            ->where('produit_id', $p['id'])
+            ->where('code_mouvement', 'ENTREE')
+            ->first()['quantite'] ?? 0;
+
+        $sortie = $mouvementModel
+            ->selectSum('quantite')
+            ->where('produit_id', $p['id'])
+            ->where('code_mouvement', 'SORTIE')
+            ->first()['quantite'] ?? 0;
+
+        $stock = $entree - $sortie;
+
+        $data['stocks'][] = [
+            'designation' => $p['designation'],
+            'prix_unitaire' => $p['prix_unitaire'],
+            'stock' => $stock
+        ];
+    }
+
+    return view('produit/stock', $data);
+}
 }

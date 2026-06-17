@@ -9,3 +9,6 @@ $routes->get('/', 'CaisseController::index');
 $routes->get('/check-caisse', 'CaisseController::checkCaisse');
 $routes->get('/achat/saisie', 'AchatController::index');
 $routes->post('/achat/save', 'AchatController::create');
+$routes->get('/stock', 'ProduitController::stock');
+$routes->get('/achat', 'AchatController::show');
+$routes->get('/achat/(:num)', 'AchatController::detail/$1');
