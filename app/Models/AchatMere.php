@@ -13,8 +13,10 @@ class AchatMere extends Model
     public function enregistrerAchat(array $items, $caisse)
     {
         $this->validerPanier($items);
+        $this->validerStock($items);
 
         $produitsParId = $this->recupererProduits($items);
+        
 
         $prixTotal = $this->calculerPrixTotal($items, $produitsParId);
 
@@ -107,7 +109,7 @@ class AchatMere extends Model
     private function creerAchatMere(int $caisseId, float $prixTotal): int
     {
         $mereId = $this->insert([
-            'caisse_id'  => $caisseId,
+            'caisse_id' => $caisseId,
             'prix_total' => $prixTotal,
             'date_achat' => date('Y-m-d H:i:s')
         ]);
@@ -163,25 +165,48 @@ class AchatMere extends Model
             $prixUnitaire = $produit['prix_unitaire'];
             $quantite = $item['qty'];
 
-            if (!$filleModel->insert([
-                'achat_mere_id' => $mereId,
-                'produit_id' => $item['id'],
-                'quantite' => $quantite,
-                'prix_unitaire' => $prixUnitaire
-            ])) {
+            if (
+                !$filleModel->insert([
+                    'achat_mere_id' => $mereId,
+                    'produit_id' => $item['id'],
+                    'quantite' => $quantite,
+                    'prix_unitaire' => $prixUnitaire
+                ])
+            ) {
                 throw new \Exception(
                     'Erreur insertion ligne fille pour produit ' . $item['id']
                 );
             }
 
-            if (!$mouvementModel->insert([
-                'produit_id' => $item['id'],
-                'code_mouvement' => $typeSortieCode,
-                'quantite' => -$quantite,
-                'date_mouvement' => date('Y-m-d H:i:s')
-            ])) {
+            if (
+                !$mouvementModel->insert([
+                    'produit_id' => $item['id'],
+                    'code_mouvement' => $typeSortieCode,
+                    'quantite' => -$quantite,
+                    'date_mouvement' => date('Y-m-d H:i:s')
+                ])
+            ) {
                 throw new \Exception(
                     'Erreur mouvement de stock pour produit ' . $item['id']
+                );
+            }
+        }
+    }
+
+    private function validerStock(array $items): void
+    {
+        $produitModel = new Produit();
+
+        foreach ($items as $item) {
+
+            if (
+                !$produitModel->assezDeStock(
+                    $item['qty'],
+                    $item['id']
+                )
+            ) {
+                throw new \Exception(
+                    'Stock insuffisant pour le produit ID ' . $item['id']
                 );
             }
         }
